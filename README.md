@@ -25,4 +25,4 @@ After getting the expansion circuit working on a breadboard, I picked up an *Exp
 
 Photos and More Information
 ---------------------------
-Visit my blog at [brianhanifin.com](http://brianhanifin.com) for photos, a circuit diagram and more details.
+Visit [http://brianhanifin.com/tag/garage-monitor/](http://brianhanifin.com/tag/garage-monitor/) for photos, a circuit diagram, and project updates.
