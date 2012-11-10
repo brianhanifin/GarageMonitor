@@ -35,17 +35,22 @@ switch ($doorStatus) {
 <link rel="icon" type="image/png" href="remote.png" />
 <style type="text/css">
 body {background:<?php echo $bgcolor ?>; color:#fff; text-align:center;}
-#status {font-size:800%;}
-.temp {font-size:400%; margin:1em;}
-.label {font-size:50%;}
+#status {font-size:10em;}
+.temp {font-size:5em; margin:1em;}
+.label {font-size:0.5em;}
+#timestamp {font-size:3em;}
 </style>
 </html>
 <body>
 <div id="status"><?php echo "$doorStatus" ?></div>
-<div class="temp">
-	<?php echo "$temp1" ?>&deg; F
-	<div class="label">Garage Temp</div>
-</div>
+<?php
+if ($temp1 != "0") {
+	echo "<div class=\"temp\">";
+	echo $temp1."&deg; F";
+	echo "<div class=\"label\">Garage Temp</div>";
+	echo "</div>";
+}
+?>
 <div id="timestamp">
 	<?php echo "$timestamp" ?>
 	<div class="label">Last Update</div>
