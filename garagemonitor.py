@@ -13,7 +13,7 @@
 # * Temperature Sensor #1:        CH 0                 (pin 1)
 # 
 # created May 15, 2012
-# updated November 11, 2012
+# updated November 13, 2012
 # by Brian Hanifin
 # 
 # Status service
@@ -30,7 +30,8 @@
 
 import RPi.GPIO as GPIO
 import datetime, time
-import httplib, urllib, smtplib
+import httplib, urllib
+import smtplib
 from email.mime.text import MIMEText
 
 # Define basic settings.
@@ -65,6 +66,7 @@ HTTP_RETRY_DELAY   = 15  # How many seconds to delay before trying to contact th
 EMAIL_TO      = "test@example.com"
 EMAIL_FROM    = "websites@example.com"
 SMTP_HOST     = "smtp.example.com"
+SMTP_PORT     = 587
 SMTP_USER     = "websites@example.com"
 SMTP_PASSWORD = "password"
 EMAIL_SUBJECT = "Garage Monitor Error: doorStateUpdateFailed"
@@ -140,15 +142,18 @@ def doorStateUpdateFailed():
 	msg['Subject'] = EMAIL_SUBJECT
 	
 	# Send the message via an SMTP server
-	s = smtplib.SMTP(SMTP_HOST)
-	s.login(SMTP_USER,SMTP_PASS)
-	if DEBUG_MODE: s.set_debuglevel(1)
-	s.sendmail(EMAIL_FROM, EMAIL_TO, msg.as_string())
-	s.quit()
+	smtp = smtplib.SMTP(SMTP_HOST, SMTP_PORT)
+	if DEBUG_MODE: smtp.set_debuglevel(True)
+	smtp.ehlo()
+	smtp.starttls()
+	smtp.ehlo
+	smtp.login(SMTP_USER, SMTP_PASSWORD)
+	smtp.sendmail(EMAIL_FROM, EMAIL_TO, msg.as_string())
+	smtp.quit()
 	
 	# Free the objects from memory.
 	del msg
-	del s
+	del smtp
 
 
 def getButtonStatus(button):
