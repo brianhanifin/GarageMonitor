@@ -29,14 +29,14 @@
 ################################################################################
 
 import RPi.GPIO as GPIO
-import datetime, time#, sys
+import datetime, time
 import httplib, urllib, smtplib
 from email.mime.text import MIMEText
 
 # Define basic settings.
 OPEN_BTN_MISSING = True    # Is the open button missing?
 ENABLE_UPDATES   = True    # To you want to send updates to the web server?
-DEBUG_MODE       = True#False   # Do you want to output debugging information to the console?
+DEBUG_MODE       = False   # Do you want to output debugging information to the console?
 
 # Define GPIO pins used
 LED_RED_GPIO    = 2   # "Open" Red LED
