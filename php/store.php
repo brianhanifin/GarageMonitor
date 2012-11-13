@@ -24,4 +24,9 @@ $fh = fopen($myFile, 'w') or die("can't open file");
 fwrite($fh, $timestamp."\t".$doorStatus."\t".$temp1);
 fclose($fh);
 
+// Clear the request file.
+$myFile = "/home1/brianhan/data/Garage_PiRequest.txt";
+$fh = fopen($myFile, 'w') or die("can't open file");
+fwrite($fh, "");
+fclose($fh);
 ?>

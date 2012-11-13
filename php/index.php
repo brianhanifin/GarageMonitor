@@ -1,9 +1,4 @@
 <?php
-/*
-This script will store the values passed to it in a file.
- */
-
-
 // Read the value from the status file.
 $myFile = "/home1/brianhan/data/Garage.txt";
 if (file_exists($myFile)) {
@@ -28,20 +23,30 @@ switch ($doorStatus) {
 		break;
 
 }
-?>
-<html>
-<title>Garage Monitor</title>
-<meta http-equiv="refresh" content="10; URL=./">
-<link rel="icon" type="image/png" href="remote.png" />
-<style type="text/css">
-body {background:<?php echo $bgcolor ?>; color:#fff; text-align:center;}
-#status {font-size:10em;}
-.temp {font-size:5em; margin:1em;}
-.label {font-size:0.5em;}
-#timestamp {font-size:3em;}
-</style>
-</html>
-<body>
+?><!DOCTYPE html>
+<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js"> <!--<![endif]-->
+    <head>
+		<meta http-equiv="refresh" content="10; URL=./">
+		<link rel="icon" type="image/png" href="remote.png" />
+		<meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+		<title>Garage Monitor</title>
+        <meta name="viewport" content="width=device-width" />
+		<style type="text/css">
+		body {background:<?php echo $bgcolor ?>; color:#fff; text-align:center;}
+		#status {font-size:5em;}
+		.temp {font-size:2.5em; margin:1em;}
+		.label {font-size:0.5em;}
+		#timestamp {font-size:1em; margin:1em;}
+		button {font-size:1em;)
+
+		#notification {display:none; margin:0.5em;}
+		</style>
+    </head>
+    <body>
 <div id="status"><?php echo "$doorStatus" ?></div>
 <?php
 if ($temp1 != "0") {
@@ -55,4 +60,38 @@ if ($temp1 != "0") {
 	<?php echo "$timestamp" ?>
 	<div class="label">Last Update</div>
 </div>
-</body>
+
+<div id="notification"></div>
+<div id="buttons">
+	<button id="refresh_request">Status Refresh</button>
+<?php
+// Disable this button unless we want to allow this functionality.
+if ($doorStatus == "open") {
+	//echo "<button id=\"close_request\">Close Door</button>";
+}
+?>
+</div>
+        <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+        <script>window.jQuery || document.write('<script src="js/vendor/jquery-1.8.2.min.js"><\/script>')</script>
+
+        <script src="js/plugins.js"></script>
+        <!-- <script src="js/main.js"></script> -->
+<script>
+function submitRequest(a) {
+  $.post("pi_request.php",
+  {action:a},
+  function(data,status){
+    $("#notification").empty().append(data).show().fadeIn().delay(3000).fadeOut();
+  });
+}
+
+$("#refresh_request").click(function(){
+	submitRequest("refresh");
+});
+
+$("#close_request").click(function(){
+	submitRequest("close");
+});
+</script>
+    </body>
+</html>
