@@ -1,8 +1,8 @@
 ################################################################################
 # Garage Monitor
 # 
-# This goal of this project is to provide the state of the garage to a personal
-# web server.
+# This goal of this project is to provide the state of the garage door to a 
+# publicly hosted web server.
 # 
 # Raspberry Pi GPIO Header
 # * Reed switches:                GPIO 2, 3            (pins 3, 5)
@@ -13,13 +13,14 @@
 # * Temperature Sensor #1:        CH 0                 (pin 1)
 # 
 # created May 15, 2012
-# updated November 09, 2012
+# updated November 11, 2012
 # by Brian Hanifin
 # 
-# http://example.com/garage
+# Status service
+# http://example.com/Garage/
 # http://example.com/GarageAPI/store.php?s=[open,closed,between]&t1=[temp]
 ################################################################################
-# How to run at startup
+# How to run
 # /etc/init.d/garagemonitor start
 # 
 # Kill the process via SSH
@@ -28,13 +29,14 @@
 ################################################################################
 
 import RPi.GPIO as GPIO
-import datetime, time, sys
-import httplib, urllib
+import datetime, time#, sys
+import httplib, urllib, smtplib
+from email.mime.text import MIMEText
 
 # Define basic settings.
 OPEN_BTN_MISSING = True    # Is the open button missing?
 ENABLE_UPDATES   = True    # To you want to send updates to the web server?
-DEBUG_MODE       = False   # Do you want to output debugging information to the console?
+DEBUG_MODE       = True#False   # Do you want to output debugging information to the console?
 
 # Define GPIO pins used
 LED_RED_GPIO    = 2   # "Open" Red LED
@@ -54,9 +56,19 @@ TEMP1_ADC_CH = 0   # CH0 pin #1
 # Define web service settings
 SERVICE_HOST       = "example.com"                         # Hostname the service is hosted on.
 SERVICE_URL        = "/GarageAPI/store.php"                # Path to the service script.
+STATUS_URL         = "http://example.com/Garage/"
 USER_AGENT         = "Garage Door Monitor (Raspberry Pi)"  # User Agent reported to the service.
 HTTP_RETRIES       = 5   # How many times should we retry, should we be unable to contact the service.
-HTTP_RETRY_DELAY   = 15  # How many seconds to delay before trying to contact the service again.   
+HTTP_RETRY_DELAY   = 15  # How many seconds to delay before trying to contact the service again.
+
+# Define email settings
+EMAIL_TO      = "test@example.com"
+EMAIL_FROM    = "websites@example.com"
+SMTP_HOST     = "smtp.example.com"
+SMTP_USER     = "websites@example.com"
+SMTP_PASSWORD = "password"
+EMAIL_SUBJECT = "Garage Monitor Error: doorStateUpdateFailed"
+EMAIL_MESSAGE = "The service did not respond after {0} retries. {1}".format(str(HTTP_RETRIES), STATUS_URL)
 
 # Define other settings
 DOOR_STATE_OPEN    = "open"
@@ -106,13 +118,37 @@ def convertMillivoltsToFahrenheit(value):
 		print "millivolts:\t", millivolts
 		print "temp_C:\t\t", temp_C
 		print "temp_F:\t\t", temp_F
-		print	
+		print
 	
 	return temp_F
+	
+	# Free the objects from memory.	
+	del millivolts
+	del temp_C
+	del temp_F
 
 
 def doorStateUpdateFailed():
-	print("TODO: Insert doorStateUpdateFailed() reporting code.")
+	if DEBUG_MODE:	print("doorStateUpdateFailed()")
+	
+	if DEBUG_MODE: print EMAIL_MESSAGE
+	
+	# Construct email
+	msg = MIMEText(EMAIL_MESSAGE)
+	msg['To'] = EMAIL_TO
+	msg['From'] = EMAIL_FROM
+	msg['Subject'] = EMAIL_SUBJECT
+	
+	# Send the message via an SMTP server
+	s = smtplib.SMTP(SMTP_HOST)
+	s.login(SMTP_USER,SMTP_PASS)
+	if DEBUG_MODE: s.set_debuglevel(1)
+	s.sendmail(EMAIL_FROM, EMAIL_TO, msg.as_string())
+	s.quit()
+	
+	# Free the objects from memory.
+	del msg
+	del s
 
 
 def getButtonStatus(button):
@@ -130,6 +166,8 @@ def getButtonStatus(button):
 	else:
 		# Retrieve the state of the door open switch when it is installed.
 		return (not GPIO.input(BTN_OPEN_GPIO))
+	
+	del button
 
 
 def getDoorStatus(doorClosed, doorOpen):
@@ -149,6 +187,10 @@ def getDoorStatus(doorClosed, doorOpen):
 	if DEBUG_MODE:	print("doorStatus: {0}".format(currentState))
 	
 	return currentState
+	
+	del currentState
+	del doorClosed
+	del doorOpen
 
 
 def ledFlash(flashes, finishState):
@@ -158,7 +200,7 @@ def ledFlash(flashes, finishState):
 	GPIO.output(LED_RED_GPIO, LED_OFF);
 	
 	# Subtract one from the flashes loop when we end on a solid LED.
-	if finishState == True: flashes = flashes-1;
+	if finishState is True: flashes = flashes-1;
 	
 	for i in range(flashes):
 		GPIO.output(LED_GREEN_GPIO, LED_OFF);
@@ -168,6 +210,9 @@ def ledFlash(flashes, finishState):
 	
 	# Leave the LED on when requested.
 	if finishState == True: GPIO.output(LED_GREEN_GPIO, True);
+	
+	del flashes
+	del finishState
  
 
 # Read SPI data from MCP3008 chip, 8 possible adc's (0 thru 7)
@@ -223,19 +268,26 @@ def sendUpdate(doorStatus, temp1):
 		data = response.read()
 		conn.close()
 		
-		# Store the last HTTP status for later comparison.
-		lastHTTPStatus = response.status
-		
 		# When the update is successful we can stop.
 		if response.status == 200:
 			break
-		# But, if the server isn't responding ..
+		# If the server isn't responding ..
 		else:
-			# ... and we have maxed out our retry count, then send a report ...
-			if i == HTTP_RETRIES: doorStateUpdateFailed()
-			
-			#  ... but, if we have more retries, then we set a delay before trying again.
+			#  ... delay before trying again.
 			time.sleep(HTTP_RETRY_DELAY)
+	
+	# When we have maxed out our retry count, then send a report ...
+	if i == HTTP_RETRIES: doorStateUpdateFailed()
+	
+	# Store the last HTTP status for later comparison.
+	lastHTTPStatus = response.status
+	
+	# Free the objects from memory.
+	del response
+	del conn
+	del params
+	del headers
+	del data
 
 
 def setup():
