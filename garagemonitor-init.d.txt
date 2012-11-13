@@ -10,7 +10,7 @@ case "$1" in
   start)
     echo "Starting Garage Monitor"
     # run application you want to start
-    sudo python /usr/share/adafruit/webide/repositories/my-pi-projects/Garage_Monitor/garagemonitor.py > /home/pi/garagemonitor$
+    sudo python /usr/share/adafruit/webide/repositories/my-pi-projects/Garage_Monitor/garagemonitor.py > /home/pi/garagemonitor.txt
     ;;
   stop)
     echo "Stopping Garage Monitor (and all other Python scripts)"
