@@ -75,13 +75,12 @@ if ($doorStatus == "open") {
         <script>window.jQuery || document.write('<script src="js/vendor/jquery-1.8.2.min.js"><\/script>')</script>
 
         <script src="js/plugins.js"></script>
-        <!-- <script src="js/main.js"></script> -->
 <script>
 function submitRequest(a) {
   $.post("pi_request.php",
   {action:a},
   function(data,status){
-    $("#notification").empty().append(data).show().fadeIn().delay(3000).fadeOut();
+    $("#notification").empty().append(data).show().fadeIn().delay(5000).fadeOut();
   });
 }
 
