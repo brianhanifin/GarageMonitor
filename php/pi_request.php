@@ -19,7 +19,7 @@ if ($_SERVER["REQUEST_METHOD"] == 'POST') {
 $recognizedAction = True;
 switch ($action) {
 	case "refresh":
-		echo "A status refresh has been requested. The status should be updated momentarily.";
+		echo "A status refresh should be available in under 1 minute.";
 		break;
 
 	case "close":

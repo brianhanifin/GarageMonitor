@@ -19,7 +19,7 @@
 # Garage Status service
 # http://example.com/garage/
 # http://example.com/GarageAPI/store.php?s=[open,closed,between]&t1=[temp]
-#
+# 
 # Action Request service
 # http://example.com/GarageAPI/read_request.php
 ################################################################################
@@ -65,6 +65,7 @@ STATUS_URL         = "http://example.com/garage"      # URL to view the current 
 USER_AGENT         = "Garage Door Monitor (Raspberry Pi)"  # User Agent reported to the service.
 HTTP_RETRIES       = 5   # How many times should we retry, should we be unable to contact the service.
 HTTP_RETRY_DELAY   = 15  # How many seconds to delay before trying to contact the service again.
+REQUEST_DELAY      = 60
 
 # Define email settings
 EMAIL_TO      = "code@example.com"
@@ -89,13 +90,14 @@ LED_START_FLASHES  = 10  # How many times should the LED flash on startup?
 if DEBUG_MODE: LED_START_FLASHES = 2
 
 # Initialze global variables
-doorClosed     = False
-doorOpen       = False
-doorBetween    = True
-actionRequest  = ""
-lastDoorStatus = "1st_Run"
-lastHTTPStatus = 0
-temp1          = 0
+doorClosed      = False
+doorOpen        = False
+doorBetween     = True
+actionRequest   = ""
+lastDoorStatus  = "1st_Run"
+lastHTTPStatus  = 0
+temp1           = 0
+lastRequestTime = datetime.datetime.now()
 
 
 def changeStatusLEDs(doorClosed, doorOpen):
@@ -105,6 +107,7 @@ def changeStatusLEDs(doorClosed, doorOpen):
 	# Free unused objects from memory.
 	del doorClosed
 	del doorOpen
+
 
 def convertMillivoltsToFahrenheit(value):
 	# convert analog reading to millivolts = ADC * ( 3300 / 1024 )
@@ -132,7 +135,7 @@ def convertMillivoltsToFahrenheit(value):
 	
 	return temp_F
 	
-	# Free unused objects from memory.	
+	# Free unused objects from memory.      
 	del millivolts
 	del temp_C
 	del temp_F
@@ -153,6 +156,9 @@ def doAction(str):
 			doUpdate()
 		elif action == "close":
 			doCloseDoor()
+		
+		# Clear the previous action.
+		actionRequest = ""
 		
 		# Free unused objects from memory.
 		del vars
@@ -180,7 +186,7 @@ def doUpdate():
 	temp1 = convertMillivoltsToFahrenheit(read_adc0)
 	
 	# Send the current state of the garage to the server.
-	if ENABLE_UPDATES:	sendUpdate(doorStatus, temp1)
+	if ENABLE_UPDATES:  sendUpdate(doorStatus, temp1)
 	
 	# Free unused objects from memory.
 	del read_adc0
@@ -188,7 +194,7 @@ def doUpdate():
 
 
 def doorStateUpdateFailed():
-	if DEBUG_MODE:	print("doorStateUpdateFailed()")
+	if DEBUG_MODE:  print("doorStateUpdateFailed()")
 	
 	# Construct email
 	msg = MIMEText(EMAIL_MESSAGE)
@@ -210,10 +216,11 @@ def doorStateUpdateFailed():
 	del msg
 	del smtp
 
+
 def getActionRequest():
-	if DEBUG_MODE:	print("getActionRequest()")
+	if DEBUG_MODE:  print("getActionRequest()")
 	
-	headers = {"User-Agent": USER_AGENT}#, "Content-type": "application/x-www-form-urlencoded", "Accept": "text/plain"}
+	headers = {"User-Agent": USER_AGENT}
 	
 	# Keep trying to to submit the status to the server until the retry count expires.
 	conn = httplib.HTTPConnection(SERVICE_HOST)
@@ -253,8 +260,8 @@ def getButtonStatus(button):
 
 
 def getDoorStatus(doorClosed, doorOpen):
-	if DEBUG_MODE:	print("getDoorStatus()")
-	if DEBUG_MODE:	print('doorClosed: {0}    doorOpen: {1}'.format(doorClosed, doorOpen))
+	if DEBUG_MODE:  print("getDoorStatus()")
+	if DEBUG_MODE:  print('doorClosed: {0}    doorOpen: {1}'.format(doorClosed, doorOpen))
 	
 	if doorOpen:
 		currentState = DOOR_STATE_OPEN
@@ -266,7 +273,7 @@ def getDoorStatus(doorClosed, doorOpen):
 		currentState = DOOR_STATE_BETWEEN
 		doorBetween = True
 	
-	if DEBUG_MODE:	print("doorStatus: {0}".format(currentState))
+	if DEBUG_MODE:  print("doorStatus: {0}".format(currentState))
 	
 	return currentState
 	
@@ -301,51 +308,51 @@ def ledFlash(flashes, finishState):
 # Read SPI data from MCP3008 chip, 8 possible adc's (0 thru 7)
 # * Source: http://learn.adafruit.com/send-raspberry-pi-data-to-cosm/python-script
 def readadc(adcnum, clockpin, mosipin, misopin, cspin):
-    if ((adcnum > 7) or (adcnum < 0)):
-            return -1
-    GPIO.output(cspin, True)
-
-    GPIO.output(clockpin, False)  # start clock low
-    GPIO.output(cspin, False)     # bring CS low
-
-    commandout = adcnum
-    commandout |= 0x18  # start bit + single-ended bit
-    commandout <<= 3    # we only need to send 5 bits here
-    for i in range(5):
-            if (commandout & 0x80):
-                    GPIO.output(mosipin, True)
-            else:   
-                    GPIO.output(mosipin, False)
-            commandout <<= 1
-            GPIO.output(clockpin, True)
-            GPIO.output(clockpin, False)
-
-    adcout = 0
-    # read in one empty bit, one null bit and 10 ADC bits
-    for i in range(12):
-            GPIO.output(clockpin, True)
-            GPIO.output(clockpin, False)
-            adcout <<= 1
-            if (GPIO.input(misopin)):
-                    adcout |= 0x1
-
-    GPIO.output(cspin, True)
-
-    adcout /= 2       # first bit is 'null' so drop it
-    return adcout
-    
+	if ((adcnum > 7) or (adcnum < 0)):
+		return -1
+	GPIO.output(cspin, True)
+	
+	GPIO.output(clockpin, False)  # start clock low
+	GPIO.output(cspin, False)     # bring CS low
+	
+	commandout = adcnum
+	commandout |= 0x18  # start bit + single-ended bit
+	commandout <<= 3    # we only need to send 5 bits here
+	for i in range(5):
+		if (commandout & 0x80):
+			GPIO.output(mosipin, True)
+		else:   
+			GPIO.output(mosipin, False)
+		commandout <<= 1
+		GPIO.output(clockpin, True)
+		GPIO.output(clockpin, False)
+	
+	adcout = 0
+	# read in one empty bit, one null bit and 10 ADC bits
+	for i in range(12):
+		GPIO.output(clockpin, True)
+		GPIO.output(clockpin, False)
+		adcout <<= 1
+		if (GPIO.input(misopin)):
+			adcout |= 0x1
+	
+	GPIO.output(cspin, True)
+	
+	adcout /= 2       # first bit is 'null' so drop it
+	return adcout
+	
 	# Free unused objects from memory.
-    del adcnum
-    del clockpin
-    del mosipin
-    del misopin
-    del cspin
-    del commandout
-    del adcout
+	del adcnum
+	del clockpin
+	del mosipin
+	del misopin
+	del cspin
+	del commandout
+	del adcout
 
 
 def sendUpdate(doorStatus, temp1):
-	if DEBUG_MODE:	print("sendUpdate()")
+	if DEBUG_MODE:  print("sendUpdate()")
 	
 	params = {'s' : doorStatus, 't1' : temp1, 'time' : datetime}
 	params = urllib.urlencode(params)
@@ -386,7 +393,7 @@ def sendUpdate(doorStatus, temp1):
 
 def setup():
 	GPIO.setmode(GPIO.BCM)
-
+	
 	# Define output pins
 	GPIO.setup(LED_GREEN_GPIO, GPIO.OUT) # green LED (door closed indicator)
 	GPIO.setup(LED_RED_GPIO, GPIO.OUT)   # red LED   (door open indicator)
@@ -429,15 +436,20 @@ while True:
 	# IMPORTANT! Only send a status update when the status has changed.
 	if lastDoorStatus != doorStatus:
 		doUpdate()
-		
-		# Delay in between sensor readings.
-		time.sleep(SENSOR_READ_DELAY)  
 	else:
-		# Check for an action request
-		actionRequest = getActionRequest()
-		if actionRequest != "":
-			doAction(actionRequest)
-			actionRequest = ""
+		# Only check for new Action Requests when a timeout has expired to avoid flooding the server.
+		diff = datetime.datetime.now() - lastRequestTime
+		if DEBUG_MODE:  print "{0} >= {1}".format(diff.seconds,REQUEST_DELAY)
+		if diff.seconds >= REQUEST_DELAY:
+			# Check for an action request
+			actionRequest = getActionRequest()
+			if actionRequest != "": doAction(actionRequest)
+			
+			# Reset the last request timestamp.
+			lastRequestTime = datetime.datetime.now()
+		
+		# Free unused objects from memory.
+		del diff
 	
 	# Store the last door state for later comparison.
 	lastDoorStatus = doorStatus
@@ -446,3 +458,6 @@ while True:
 	del doorClosed
 	del doorOpen
 	del doorStatus
+	
+	# Delay in between sensor readings.
+	time.sleep(SENSOR_READ_DELAY)
