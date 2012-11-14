@@ -36,6 +36,7 @@ import datetime, time
 import httplib, urllib
 import smtplib
 from email.mime.text import MIMEText
+import gc
 
 # Define basic settings.
 OPEN_BTN_MISSING = True    # Is the open button missing?
@@ -458,6 +459,9 @@ while True:
 	del doorClosed
 	del doorOpen
 	del doorStatus
+	
+	# Run Garbage Collection to free memory.
+	gc.collect()
 	
 	# Delay in between sensor readings.
 	time.sleep(SENSOR_READ_DELAY)
