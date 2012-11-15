@@ -13,7 +13,7 @@ I created a simplified "web service" in PHP which accepts the current door statu
 ## Status Page
 The current status is displayed by a PHP page which reads the last status from the server file and displays them. The background color of the entire page is changed to represent the current status (so the status can be known by a quick glance at my phone.
 
-## init.d Service
+## Run At Startup Service
 Copy the contents of garagemonitor-init.d.txt and pasted it into /etc/init.d/garagemonitor using:  
 `sudo nano /etc/init.d/garagemonitor`
 
