@@ -123,7 +123,8 @@ function submitRequest(a) {
 }
 
 function flashNotify(data) {
-	$("#notification").empty().append(data).animate({backgroundColor: "<?php echo $bgcolor2 ?>", color: "#000"}, 1000 )
+	$("#notification").empty().animate({backgroundColor: "<?php echo $bgcolor ?>", color: "#000"}, 100 )
+	$("#notification").append(data).animate({backgroundColor: "<?php echo $bgcolor2 ?>", color: "#000"}, 500 )
 }
 
 $("#refresh_request").click(function(){
