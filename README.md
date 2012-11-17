@@ -17,6 +17,8 @@ The current status is displayed by a PHP page which reads the last status from t
 Copy the contents of garagemonitor-init.d.txt and pasted it into /etc/init.d/garagemonitor using:  
 `sudo nano /etc/init.d/garagemonitor`
 
+*Note to self: Adafruit's Webide uses restartd to run this as a service. Review adafruid-webide.sh and install.sh at [Adafruit-WebIDE/scripts](https://github.com/adafruit/Adafruit-WebIDE/tree/master/scripts)*
+
 ## 'Keep Garage Monitor Active' Bash Script
 Run:  
 `crontab -e`  
