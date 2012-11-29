@@ -7,6 +7,8 @@ At the time of this writing my Raspberry Pi is running [Adafruit's Educational L
 ## Python Script
 The software running on my Raspberry Pi is built in Python. The script runs at startup and checks every second (or so) for current status of the Closed/Open switches. When a change in state is detected, the current temperature is taken and the status is sent to a web service.
 
+*Idea: Add SMS notification when the status changes using the [Email to SMS gateway](http://en.wikipedia.org/wiki/List_of_SMS_gateways "List of SMS gateways - Wikipedia") of your phone's service provider.*
+
 ## Web Service
 I created a simplified "web service" in PHP which accepts the current door status (closed, open, or between) and the current temperature. The service logs the status and a timestamp to a file on the server.
 
