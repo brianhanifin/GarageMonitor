@@ -15,11 +15,20 @@ I created a simplified "web service" in PHP which accepts the current door statu
 ## Status Page
 The current status is displayed by a PHP page which reads the last status from the server file and displays them. The background color of the entire page is changed to represent the current status (so the status can be known by a quick glance at my phone.
 
-## Run At Startup Service
+## Create A Startup Script
 Copy the contents of garagemonitor-init.d.txt and pasted it into /etc/init.d/garagemonitor using:  
 `sudo nano /etc/init.d/garagemonitor`
 
 *Note to self: Adafruit's Webide uses restartd to run this as a service. Review adafruid-webide.sh and install.sh at [Adafruit-WebIDE/scripts](https://github.com/adafruit/Adafruit-WebIDE/tree/master/scripts)*
+
+### Make The Startup Script Executable
+`sudo chmod 755 /etc/init.d/garagemonitor`
+
+### Make The Script Run At Startup
+`sudo update-rc.d garagemonitor defaults`
+
+### Removing The Script From Startup
+`sudo update-rc.d -f garagemonitor remove`
 
 ## 'Keep Garage Monitor Active' Bash Script
 Run:  
