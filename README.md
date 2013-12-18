@@ -38,7 +38,7 @@ Then enter a line similar to the following, substituting the path to your bash s
 `*/5 * * * * bash /usr/share/adafruit/webide/repositories/my-pi-projects/Garage_Monitor/keep_garage_monitor_active.sh`
 
 ## Custom Circuit Board
-After getting the expansion circuit working on a breadboard, I picked up an *Experimenter Printed Circuit Board* at Radio Shack (Part [276-0170](http://http://www.radioshack.com/product/index.jsp?productId=2102846)). I choose this board because is closely mimics the layout of a breadboard, so it made it easier for me to build a duplicate copy without worrying about making extra connections.
+After getting the expansion circuit working on a breadboard, I picked up an *Experimenter Printed Circuit Board* at Radio Shack (Part [276-0170](http://www.radioshack.com/product/index.jsp?productId=2102846)). I choose this board because is closely mimics the layout of a breadboard, so it made it easier for me to build a duplicate copy without worrying about making extra connections.
 
 ## Photos and More Information
 Visit [http://brianhanifin.com/tag/garage-monitor/](http://brianhanifin.com/tag/garage-monitor/) for photos, a circuit diagram, and project updates.
